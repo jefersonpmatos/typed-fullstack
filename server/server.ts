@@ -1,7 +1,8 @@
+import fCookie from "@fastify/cookie";
 import { fastifyCors } from "@fastify/cors";
+import fjwt, { FastifyJWT, JWT } from "@fastify/jwt";
 import { fastifySwagger } from "@fastify/swagger";
-import { fastifySwaggerUi } from "@fastify/swagger-ui";
-import fastify from "fastify";
+import fastify, { FastifyReply, FastifyRequest } from "fastify";
 import {
   jsonSchemaTransform,
   serializerCompiler,
@@ -10,103 +11,100 @@ import {
 } from "fastify-type-provider-zod";
 import { writeFile } from "fs/promises";
 import { resolve } from "path";
-import { prisma } from "./lib/database";
 import { routes } from "./routes";
 
-const app = fastify({
-  logger: {
-    level: process.env.LOG_LEVEL || "info",
-  },
-}).withTypeProvider<ZodTypeProvider>();
+declare module "fastify" {
+  interface FastifyRequest {
+    jwt: JWT;
+  }
+}
+
+declare module "fastify" {
+  interface FastifyRequest {
+    jwt: JWT;
+  }
+  export interface FastifyInstance {
+    authenticate: any;
+  }
+}
+type UserPayload = {
+  id: string;
+  email: string;
+  name: string;
+};
+declare module "@fastify/jwt" {
+  interface FastifyJWT {
+    user: UserPayload;
+  }
+}
+
+const app = fastify().withTypeProvider<ZodTypeProvider>();
 
 app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
 
 app.register(fastifyCors, {
-  origin:
-    process.env.NODE_ENV === "production" ? process.env.FRONTEND_URL : "*",
+  origin: [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:3000",
+  ],
 });
 
 app.register(fastifySwagger, {
   openapi: {
     info: {
-      title: "TYPED FULL STACK API",
-      description: "A typed full-stack API with Fastify, Prisma and SQLite",
-      version: "1.0.0",
+      title: "TYPED FULL STACK",
+      description: "Description",
+      version: "0.1.0",
     },
-    servers: [
-      {
-        url: "http://localhost:3333",
-        description: "Development server",
-      },
-    ],
   },
   transform: jsonSchemaTransform,
 });
 
-app.register(fastifySwaggerUi, {
+app.register(import("@scalar/fastify-api-reference"), {
   routePrefix: "/docs",
-  uiConfig: {
-    docExpansion: "full",
-    deepLinking: false,
+  configuration: {
+    title: "TYPED FULL STACK API",
   },
 });
 
-// Health check endpoint
-app.get("/health", async (req, reply) => {
-  try {
-    await prisma.$queryRaw`SELECT 1`;
-    return { status: "ok", timestamp: new Date().toISOString() };
-  } catch (error) {
-    reply.status(503);
-    return { status: "error", message: "Database connection failed" };
-  }
+app.register(fjwt, { secret: "supersecretcode-CHANGE_THIS-USE_ENV_FILE" });
+app.addHook("preHandler", (req, res, next) => {
+  req.jwt = app.jwt;
+  return next();
 });
+app.register(fCookie, {
+  secret: "some-secret-key",
+  hook: "preHandler",
+});
+
+app.decorate(
+  "authenticate",
+  async (req: FastifyRequest, reply: FastifyReply) => {
+    const token = req.cookies.access_token;
+    if (!token) {
+      return reply.status(401).send({ message: "Authentication required" });
+    }
+    const decoded = req.jwt.verify<FastifyJWT["user"]>(token);
+    req.user = decoded;
+  }
+);
 
 app.register(routes);
 
-// Graceful shutdown
-const gracefulShutdown = async () => {
-  console.log("Starting graceful shutdown...");
+app.listen({ port: 3333 }).then(() => {
+  console.log("✅ HTTP server running on http://localhost:3333");
+});
 
-  try {
-    await app.close();
-    await prisma.$disconnect();
-    console.log("Graceful shutdown completed");
-    process.exit(0);
-  } catch (error) {
-    console.error("Error during graceful shutdown:", error);
-    process.exit(1);
-  }
-};
-
-process.on("SIGINT", gracefulShutdown);
-process.on("SIGTERM", gracefulShutdown);
-
-const start = async () => {
-  try {
-    const port = Number(process.env.PORT) || 3333;
-    const host = process.env.HOST || "0.0.0.0";
-
-    await app.listen({ port, host });
-    console.log(`🚀 HTTP server running on http://${host}:${port}`);
-    console.log(`📚 Documentation available at http://${host}:${port}/docs`);
-
-    // Generate swagger.json file
-    app.ready().then(() => {
-      const spec = app.swagger();
-      writeFile(
-        resolve(__dirname, "..", "swagger.json"),
-        JSON.stringify(spec, null, 2),
-        "utf-8"
-      ).then(() => {
-        console.log("📄 Swagger JSON generated");
-      });
-    });
-  } catch (error) {
-    console.error("Error starting server:", error);
-    process.exit(1);
-  }
-};
-
-start();
+app.ready().then(() => {
+  const spec = app.swagger();
+  writeFile(
+    resolve(__dirname, "swagger.json"),
+    JSON.stringify(spec, null, 2),
+    "utf-8"
+  ).then(() => {
+    console.log("✅ Swagger file generated");
+    console.log("✅ Documentation available on http://localhost:3333/docs");
+  });
+});
