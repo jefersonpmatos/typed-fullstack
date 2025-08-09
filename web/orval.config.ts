@@ -10,6 +10,11 @@ export default defineConfig({
       httpClient: "fetch",
       client: "react-query",
       baseUrl: "http://localhost:3333",
+      override: {
+        fetch: {
+          includeHttpResponseReturnType: false,
+        },
+      },
     },
   },
 });

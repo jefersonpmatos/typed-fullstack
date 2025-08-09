@@ -24,10 +24,27 @@ import type {
 } from '@tanstack/react-query'
 import type {
   CreateUser201,
+  CreateUser400,
+  CreateUser409,
+  CreateUser500,
   CreateUserBody,
+  DeleteUser200,
+  DeleteUser400,
+  DeleteUser404,
+  DeleteUser500,
   GetUser200,
+  GetUser400,
   GetUser404,
-  GetUsers200Item
+  GetUser500,
+  GetUsers200Item,
+  GetUsers400,
+  GetUsers404,
+  GetUsers500,
+  UpdateUser200,
+  UpdateUser400,
+  UpdateUser404,
+  UpdateUser500,
+  UpdateUserBody
 } from '../api.schemas'
 
 
@@ -35,19 +52,13 @@ import type {
 /**
  * Create user
  */
-export type createUserResponse = {
-  data: CreateUser201;
-  status: number;
-  headers: Headers;
-}
-
 export const getCreateUserUrl = () => {
 
 
   return `http://localhost:3333/users`
 }
 
-export const createUser = async (createUserBody: CreateUserBody, options?: RequestInit): Promise<createUserResponse> => {
+export const createUser = async (createUserBody: CreateUserBody, options?: RequestInit): Promise<CreateUser201> => {
   
   const res = await fetch(getCreateUserUrl(),
   {      
@@ -61,13 +72,13 @@ export const createUser = async (createUserBody: CreateUserBody, options?: Reque
   )
   const data = await res.json()
 
-  return { status: res.status, data, headers: res.headers }
+  return data as CreateUser201
 }
 
 
 
 
-export const getCreateUserMutationOptions = <TError = unknown,
+export const getCreateUserMutationOptions = <TError = CreateUser400 | CreateUser409 | CreateUser500,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createUser>>, TError,{data: CreateUserBody}, TContext>, fetch?: RequestInit}
 ): UseMutationOptions<Awaited<ReturnType<typeof createUser>>, TError,{data: CreateUserBody}, TContext> => {
 const {mutation: mutationOptions, fetch: fetchOptions} = options ?? {};
@@ -88,9 +99,9 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?? {};
 
     export type CreateUserMutationResult = NonNullable<Awaited<ReturnType<typeof createUser>>>
     export type CreateUserMutationBody = CreateUserBody
-    export type CreateUserMutationError = unknown
+    export type CreateUserMutationError = CreateUser400 | CreateUser409 | CreateUser500
 
-    export const useCreateUser = <TError = unknown,
+    export const useCreateUser = <TError = CreateUser400 | CreateUser409 | CreateUser500,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createUser>>, TError,{data: CreateUserBody}, TContext>, fetch?: RequestInit}
 ): UseMutationResult<
         Awaited<ReturnType<typeof createUser>>,
@@ -104,21 +115,15 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?? {};
       return useMutation(mutationOptions);
     }
     /**
- * Get users
+ * Get all users
  */
-export type getUsersResponse = {
-  data: GetUsers200Item[];
-  status: number;
-  headers: Headers;
-}
-
 export const getGetUsersUrl = () => {
 
 
   return `http://localhost:3333/users`
 }
 
-export const getUsers = async ( options?: RequestInit): Promise<getUsersResponse> => {
+export const getUsers = async ( options?: RequestInit): Promise<GetUsers200Item[]> => {
   
   const res = await fetch(getGetUsersUrl(),
   {      
@@ -131,7 +136,7 @@ export const getUsers = async ( options?: RequestInit): Promise<getUsersResponse
   )
   const data = await res.json()
 
-  return { status: res.status, data, headers: res.headers }
+  return data as GetUsers200Item[]
 }
 
 
@@ -141,7 +146,7 @@ export const getGetUsersQueryKey = () => {
     }
 
     
-export const getGetUsersQueryOptions = <TData = Awaited<ReturnType<typeof getUsers>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsers>>, TError, TData>>, fetch?: RequestInit}
+export const getGetUsersQueryOptions = <TData = Awaited<ReturnType<typeof getUsers>>, TError = GetUsers400 | GetUsers404 | GetUsers500>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsers>>, TError, TData>>, fetch?: RequestInit}
 ) => {
 
 const {query: queryOptions, fetch: fetchOptions} = options ?? {};
@@ -160,10 +165,10 @@ const {query: queryOptions, fetch: fetchOptions} = options ?? {};
 }
 
 export type GetUsersQueryResult = NonNullable<Awaited<ReturnType<typeof getUsers>>>
-export type GetUsersQueryError = unknown
+export type GetUsersQueryError = GetUsers400 | GetUsers404 | GetUsers500
 
 
-export function useGetUsers<TData = Awaited<ReturnType<typeof getUsers>>, TError = unknown>(
+export function useGetUsers<TData = Awaited<ReturnType<typeof getUsers>>, TError = GetUsers400 | GetUsers404 | GetUsers500>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsers>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getUsers>>,
@@ -173,7 +178,7 @@ export function useGetUsers<TData = Awaited<ReturnType<typeof getUsers>>, TError
       >, fetch?: RequestInit}
 
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
-export function useGetUsers<TData = Awaited<ReturnType<typeof getUsers>>, TError = unknown>(
+export function useGetUsers<TData = Awaited<ReturnType<typeof getUsers>>, TError = GetUsers400 | GetUsers404 | GetUsers500>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsers>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getUsers>>,
@@ -183,12 +188,12 @@ export function useGetUsers<TData = Awaited<ReturnType<typeof getUsers>>, TError
       >, fetch?: RequestInit}
 
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
-export function useGetUsers<TData = Awaited<ReturnType<typeof getUsers>>, TError = unknown>(
+export function useGetUsers<TData = Awaited<ReturnType<typeof getUsers>>, TError = GetUsers400 | GetUsers404 | GetUsers500>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsers>>, TError, TData>>, fetch?: RequestInit}
 
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
 
-export function useGetUsers<TData = Awaited<ReturnType<typeof getUsers>>, TError = unknown>(
+export function useGetUsers<TData = Awaited<ReturnType<typeof getUsers>>, TError = GetUsers400 | GetUsers404 | GetUsers500>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsers>>, TError, TData>>, fetch?: RequestInit}
 
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -205,21 +210,81 @@ export function useGetUsers<TData = Awaited<ReturnType<typeof getUsers>>, TError
 
 
 /**
- * Get user by id
+ * Partially update user by id
  */
-export type getUserResponse = {
-  data: GetUser200;
-  status: number;
-  headers: Headers;
+export const getUpdateUserUrl = (id: string,) => {
+
+
+  return `http://localhost:3333/users/${id}`
 }
 
+export const updateUser = async (id: string,
+    updateUserBody: UpdateUserBody, options?: RequestInit): Promise<UpdateUser200> => {
+  
+  const res = await fetch(getUpdateUserUrl(id),
+  {      
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateUserBody,)
+  }
+
+  )
+  const data = await res.json()
+
+  return data as UpdateUser200
+}
+
+
+
+
+export const getUpdateUserMutationOptions = <TError = UpdateUser400 | UpdateUser404 | UpdateUser500,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateUser>>, TError,{id: string;data: UpdateUserBody}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof updateUser>>, TError,{id: string;data: UpdateUserBody}, TContext> => {
+const {mutation: mutationOptions, fetch: fetchOptions} = options ?? {};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateUser>>, {id: string;data: UpdateUserBody}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateUser(id,data,fetchOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateUserMutationResult = NonNullable<Awaited<ReturnType<typeof updateUser>>>
+    export type UpdateUserMutationBody = UpdateUserBody
+    export type UpdateUserMutationError = UpdateUser400 | UpdateUser404 | UpdateUser500
+
+    export const useUpdateUser = <TError = UpdateUser400 | UpdateUser404 | UpdateUser500,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateUser>>, TError,{id: string;data: UpdateUserBody}, TContext>, fetch?: RequestInit}
+): UseMutationResult<
+        Awaited<ReturnType<typeof updateUser>>,
+        TError,
+        {id: string;data: UpdateUserBody},
+        TContext
+      > => {
+
+      const mutationOptions = getUpdateUserMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    /**
+ * Get user by id
+ */
 export const getGetUserUrl = (id: string,) => {
 
 
   return `http://localhost:3333/users/${id}`
 }
 
-export const getUser = async (id: string, options?: RequestInit): Promise<getUserResponse> => {
+export const getUser = async (id: string, options?: RequestInit): Promise<GetUser200> => {
   
   const res = await fetch(getGetUserUrl(id),
   {      
@@ -232,7 +297,7 @@ export const getUser = async (id: string, options?: RequestInit): Promise<getUse
   )
   const data = await res.json()
 
-  return { status: res.status, data, headers: res.headers }
+  return data as GetUser200
 }
 
 
@@ -242,7 +307,7 @@ export const getGetUserQueryKey = (id: string,) => {
     }
 
     
-export const getGetUserQueryOptions = <TData = Awaited<ReturnType<typeof getUser>>, TError = GetUser404>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>>, fetch?: RequestInit}
+export const getGetUserQueryOptions = <TData = Awaited<ReturnType<typeof getUser>>, TError = GetUser400 | GetUser404 | GetUser500>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>>, fetch?: RequestInit}
 ) => {
 
 const {query: queryOptions, fetch: fetchOptions} = options ?? {};
@@ -261,10 +326,10 @@ const {query: queryOptions, fetch: fetchOptions} = options ?? {};
 }
 
 export type GetUserQueryResult = NonNullable<Awaited<ReturnType<typeof getUser>>>
-export type GetUserQueryError = GetUser404
+export type GetUserQueryError = GetUser400 | GetUser404 | GetUser500
 
 
-export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError = GetUser404>(
+export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError = GetUser400 | GetUser404 | GetUser500>(
  id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getUser>>,
@@ -274,7 +339,7 @@ export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError =
       >, fetch?: RequestInit}
 
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
-export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError = GetUser404>(
+export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError = GetUser400 | GetUser404 | GetUser500>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getUser>>,
@@ -284,12 +349,12 @@ export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError =
       >, fetch?: RequestInit}
 
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
-export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError = GetUser404>(
+export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError = GetUser400 | GetUser404 | GetUser500>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>>, fetch?: RequestInit}
 
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
 
-export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError = GetUser404>(
+export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError = GetUser400 | GetUser404 | GetUser500>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>>, fetch?: RequestInit}
 
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -305,3 +370,68 @@ export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError =
 
 
 
+/**
+ * Delete user by id
+ */
+export const getDeleteUserUrl = (id: string,) => {
+
+
+  return `http://localhost:3333/users/${id}`
+}
+
+export const deleteUser = async (id: string, options?: RequestInit): Promise<DeleteUser200> => {
+  
+  const res = await fetch(getDeleteUserUrl(id),
+  {      
+    ...options,
+    method: 'DELETE'
+    
+    
+  }
+
+  )
+  const data = await res.json()
+
+  return data as DeleteUser200
+}
+
+
+
+
+export const getDeleteUserMutationOptions = <TError = DeleteUser400 | DeleteUser404 | DeleteUser500,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteUser>>, TError,{id: string}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteUser>>, TError,{id: string}, TContext> => {
+const {mutation: mutationOptions, fetch: fetchOptions} = options ?? {};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteUser>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteUser(id,fetchOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteUserMutationResult = NonNullable<Awaited<ReturnType<typeof deleteUser>>>
+    
+    export type DeleteUserMutationError = DeleteUser400 | DeleteUser404 | DeleteUser500
+
+    export const useDeleteUser = <TError = DeleteUser400 | DeleteUser404 | DeleteUser500,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteUser>>, TError,{id: string}, TContext>, fetch?: RequestInit}
+): UseMutationResult<
+        Awaited<ReturnType<typeof deleteUser>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+
+      const mutationOptions = getDeleteUserMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
