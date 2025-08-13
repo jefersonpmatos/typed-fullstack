@@ -5,8 +5,8 @@ export default defineConfig({
     input: "../server/swagger.json",
     output: {
       clean: true,
-      target: "./src/http/generated/api.ts",
-      mode: "tags-split",
+      target: "./src/api/generated/api.ts",
+      mode: "tags",
       httpClient: "fetch",
       client: "react-query",
       baseUrl: "http://localhost:3333",
