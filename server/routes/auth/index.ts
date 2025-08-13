@@ -37,7 +37,10 @@ export const authRoutes: FastifyPluginAsyncZod = async (app) => {
         operationId: "loginUser",
         body: loginSchema,
         response: {
-          201: z.object({ accessToken: z.string() }),
+          200: z.object({
+            user: userSchema.omit({ createdAt: true, updatedAt: true }),
+            accessToken: z.string(),
+          }),
           400: errorSchema,
           404: errorSchema,
           500: errorSchema,

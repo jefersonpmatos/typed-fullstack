@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 
-import { authRoutes } from "./auth-routes";
+import { authRoutes } from "./auth";
 import { addOrganizationMemberRoute } from "./organization/add-organization-member";
 import { createOrganizationRoute } from "./organization/create-organization";
 import { deleteOrganizationRoute } from "./organization/delete-organization";

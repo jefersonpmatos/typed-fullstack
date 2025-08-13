@@ -62,7 +62,7 @@ export const authController = {
       secure: true,
     });
 
-    return { accessToken: token };
+    return { user: payload, accessToken: token };
   },
 
   async logout(_: FastifyRequest, res: FastifyReply) {
